@@ -1,22 +1,26 @@
 const http = require('http'); //importa os modulos HTTPS
+const { URL } = require('url');
 
 const routes = require('./routes');
 
 //Utilizando arrow function
 const server = http.createServer((request, response) => {
-    console.log(` Request method: ${request.method} | Endpoint ${request.url}`);
+    const parsedUrl = new URL(`https://localhost:3000${request.url}`);
+    
+    console.log(` Request method: ${request.method} | Endpoint ${parsedUrl.pathname}`);
 
     //VERIFICA SE A ROTA INFORMADA PELO USER EXISTE 
     const route = routes.find((routeObj) => (
-        routeObj.endpoint === request.url && routeObj.method === request.method
+        routeObj.endpoint === parsedUrl.pathname && routeObj.method === request.method
     ));
 
     //CASO A ROTA EXISTA ENTRA NO LOOP DO IF, CASO CONTRÁRIO ENTRA NO ELSE
     if (route) {
+        request.query = Object.fromEntries(parsedUrl.searchParams);
         route.handler(request, response);
     } else{
         response.writeHead(404, { 'Content-type': 'text/html' });
-        response.end(`Cannot ${request.method} ${request.url}`);
+        response.end(`Cannot ${request.method} ${parsedUrl.pathname}`);
     }
 
 
