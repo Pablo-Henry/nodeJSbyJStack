@@ -9,14 +9,26 @@ const server = http.createServer((request, response) => {
     
     console.log(` Request method: ${request.method} | Endpoint ${parsedUrl.pathname}`);
 
+    let { pathname } = parsedUrl;
+    let id = null;
+
+    const splitEndpoint = pathname.split('/').filter(Boolean);   //RETORNA OS ITENS PRESENTES NO ENDPOINT SEPARADOS PELA BARRA '/'
+
+    if (splitEndpoint.length > 1) {
+        pathname = `/${splitEndpoint[0]}/:id`;
+        id = splitEndpoint[1]
+    };
+
     //VERIFICA SE A ROTA INFORMADA PELO USER EXISTE 
     const route = routes.find((routeObj) => (
-        routeObj.endpoint === parsedUrl.pathname && routeObj.method === request.method
+        routeObj.endpoint === pathname && routeObj.method === request.method
     ));
 
     //CASO A ROTA EXISTA ENTRA NO LOOP DO IF, CASO CONTRÁRIO ENTRA NO ELSE
     if (route) {
         request.query = Object.fromEntries(parsedUrl.searchParams);
+        request.params = { id };
+        
         route.handler(request, response);
     } else{
         response.writeHead(404, { 'Content-type': 'text/html' });
